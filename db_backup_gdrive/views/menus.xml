@@ -1,0 +1,6 @@
+<odoo>
+    <menuitem name="Google" id="google_settings" parent="base.menu_custom">
+        <menuitem name="Google Drive BK" id="gdrive_backup_setting" action="action_gdrive_settings">
+        </menuitem>
+    </menuitem>
+</odoo>

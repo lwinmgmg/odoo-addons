@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_gdrive_settings_form" model="ir.ui.view">
+        <field name="name">gdrive.settings.form</field>
+        <field name="model">gdrive.settings</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button class="oe_stat_button" name="action_login_with_gmail" type="object" icon="fa-google" string="Login With Gmail"/>
+                    <button class="oe_stat_button" name="action_create_folder" type="object" icon="fa-folder" string="Create Folder"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" />
+                            <field name="max_count" />
+                            <field name="datetime" />
+                        </group>
+                        <group>
+                            <field name="folder_name" />
+                            <field name="folder_code" readonly="1" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="drive_settings" string="Google Drive Settings">
+                            <group>
+                                <group>
+                                    <field name="credential_json" />
+                                    <field name="scopes" />
+                                </group>
+                                <group>
+                                    <field name="token_json" readonly="1" />
+                                </group>
+                            </group>
+                        </page>
+                        <page name="db_settings" string="Database Settings">
+                            <group>
+                                <group>
+                                    <field name="db_host" />
+                                    <field name="db_port" />
+                                    <field name="db_name" />
+                                </group>
+                                <group>
+                                    <field name="db_user" />
+                                    <field name="db_password" password="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page name="backup_files_page" string="Backup Files">
+                            <group>
+                                <field name="backup_files">
+                                    <tree>
+                                        <field name="file_name" />
+                                        <field name="file_code" />
+                                        <field name="date" />
+                                        <field name="size" />
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_gdrive_settings_tree" model="ir.ui.view">
+        <field name="name">gdrive.settings.tree</field>
+        <field name="model">gdrive.settings</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="folder_name" />
+                <field name="max_count" />
+                <field name="scopes" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_gdrive_settings" model="ir.actions.act_window">
+        <field name="name">Google Drive Setting</field>
+        <field name="res_model">gdrive.settings</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            Add a new gdrive
+            </p><p>
+            Create gdrive bk
+            </p>
+        </field>
+    </record>
+</odoo>

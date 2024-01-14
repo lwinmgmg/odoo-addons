@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_gdrive_settings_user,gdrive.settings.user,model_gdrive_settings,base.group_user,1,1,1,1
+access_gdrive_settings_file_user,gdrive.settings.file.user,model_gdrive_settings_file,base.group_user,1,1,1,1
