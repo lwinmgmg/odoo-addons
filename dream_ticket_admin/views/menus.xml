@@ -1,0 +1,6 @@
+<odoo>
+    <menuitem name="Tickets" id="ticket_main" sequence="100">
+        <menuitem name="Tickets" id="ticket_sub_menu" action="action_dt_ticket_server">
+        </menuitem>
+    </menuitem>
+</odoo>

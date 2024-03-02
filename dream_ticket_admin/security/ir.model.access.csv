@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+dream_ticket_admin.access_dt_ticket,access_dt_ticket,dream_ticket_admin.model_dt_ticket,base.group_user,1,1,1,1
+dream_ticket_admin.access_dt_ticket_wizard,access_dt_ticket_wizard,dream_ticket_admin.model_dt_ticket_wizard,base.group_user,1,1,1,1
+dream_ticket_admin.access_dt_ticket_line,access_dt_ticket_line,dream_ticket_admin.model_dt_ticket_line,base.group_user,1,1,1,1
+dream_ticket_admin.access_dt_ticket_line_wizard,access_dt_ticket_line_wizard,dream_ticket_admin.model_dt_ticket_line_wizard,base.group_user,1,1,1,1

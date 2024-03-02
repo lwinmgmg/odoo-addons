@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dt_ticket_form" model="ir.ui.view">
+        <field name="name">dt.ticket.form</field>
+        <field name="model">dt.ticket</field>
+        <field name="arch" type="xml">
+            <form edit="0">
+                <header>
+                    <button class="oe_stat_button" name="action_update_ticket" type="object" string="Update Ticket"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" />
+                            <field name="state" />
+                            <field name="description" />
+                        </group>
+                        <group>
+                            <field name="available_count" />
+                            <field name="reserved_count" />
+                            <field name="sold_count" />
+                        </group>
+                        <notebook>
+                            <page name="ticket_lines" string="Ticket Lines">
+                                <field name="line_ids">
+                                    <tree>
+                                        <field name="number" />
+                                        <field name="user_code" />
+                                        <field name="state" />
+                                        <field name="is_special_price" />
+                                        <field name="special_price" />
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dt_ticket_tree" model="ir.ui.view">
+        <field name="name">dt.ticket.tree</field>
+        <field name="model">dt.ticket</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="state" />
+                <field name="available_count" />
+                <field name="reserved_count" />
+                <field name="sold_count" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_dt_ticket" model="ir.actions.act_window">
+        <field name="name">Tickets</field>
+        <field name="res_model">dt.ticket</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            Add a new gdrive
+            </p><p>
+            Create gdrive bk
+            </p>
+        </field>
+    </record>
+
+    <record model="ir.actions.server" id="action_dt_ticket_server">
+        <field name="name">Ticket Server Action</field>
+        <field name="model_id" ref="model_dt_ticket"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.action_refresh_ticket()
+        </field>
+    </record>
+
+</odoo>
