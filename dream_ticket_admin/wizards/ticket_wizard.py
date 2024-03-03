@@ -2,6 +2,9 @@ import requests
 from odoo import models
 from odoo.exceptions import ValidationError
 
+from ..datamodels.ticket import TicketData
+from ..models.ticket import DEFAULT_HEADER
+
 class TicketUpdate(models.TransientModel):
     _inherit = "dt.ticket"
     _name = "dt.ticket.wizard"
@@ -10,27 +13,42 @@ class TicketUpdate(models.TransientModel):
 
     def action_create(self):
         url = "http://0.0.0.0:8000/graphql"
-        headers = {
-            "content-type": "application/json"
-        }
         payload = """
-            mutation{
-                addTicket(data: {
-                    name: "%s",
-                    description:"%s",
-                    start_num: %s,
-                    end_num: %s,
-                    available_count: %s,
-                    state: %s,
-                    sync_user: "%s"
-                }){
+            mutation addTicket($data: JSON!){
+                addTicket(data: $data){
                     id
                 }
             }
-        """%(self.name, self.description, self.start_num, self.end_num, self.end_num - self.start_num + 1, self.state, self.env.user.login)
+        """
+        data = TicketData.model_validate(self, from_attributes=True).model_dump()
+        data.pop("sync_id")
+        data["sync_user"] = self.env.user.login
         res = requests.post(url=url, json={
-            "query": payload
-        }, headers=headers)
-        if res.status_code != 200 or res.json().get("error"):
+            "query": payload,
+            "variables": {
+                "data": data
+            }
+        }, headers=DEFAULT_HEADER)
+        if res.status_code != 200 or res.json().get("errors"):
             raise ValidationError(f"Unable to create ticket : {res.json()}")
         return self.env["dt.ticket"].action_refresh_ticket()
+
+    def action_update(self):
+        data = TicketData.model_validate(self, from_attributes=True)
+        url = "http://0.0.0.0:8000/graphql"
+        payload = """
+            mutation updateTicket($data: [JSON!]!){
+                updateTicket(dataList: $data){
+                    id
+                }
+            }
+        """
+        res = requests.post(url=url, json={
+            "query": payload,
+            "variables": {
+                "data": [data.model_dump(by_alias=True)]
+            }
+        }, headers=DEFAULT_HEADER)
+        if res.status_code != 200 or res.json().get("errors"):
+            raise ValidationError("Failed to update data")
+        return self.env["dt.ticket"].search([("sync_id", "=", data.sync_id)]).write(data.model_dump())

@@ -1,7 +1,11 @@
 from typing import List, Tuple
 from enum import Enum
 import requests
-from odoo import fields, models
+from odoo import fields, models, api
+
+from ..datamodels.ticket import TicketData, TicketLineData
+
+DEFAULT_HEADER = {"content-type": "application/json"}
 
 
 class TicketState(Enum):
@@ -28,68 +32,109 @@ class Ticket(models.Model):
     available_count = fields.Integer()
     reserved_count = fields.Integer()
     sold_count = fields.Integer()
-    line_ids = fields.One2many(
-        comodel_name="dt.ticket.line", inverse_name="ticket_id")
+    line_ids = fields.One2many(comodel_name="dt.ticket.line", inverse_name="ticket_id")
     sync_id = fields.Integer(index=True)
 
-    def action_update_ticket(self): ...
+    @api.onchange("start_num", "end_num")
+    def _onchange_start_end_num(self):
+        for record in self:
+            record.available_count = 1 + self.end_num - self.start_num
+
+    def construct_datamodel(self) -> TicketData:
+        return TicketData.model_validate(self)
+
+    def action_update_ticket(self):
+        data = TicketData.model_validate(self, from_attributes=True)
+        res = self.env["dt.ticket.wizard"].create(data.model_dump())
+        return {
+            "name": "Ticket Update",
+            "type": "ir.actions.act_window",
+            "res_model": "dt.ticket.wizard",
+            "view_mode": "form",
+            "view_id": self.env.ref(
+                "dream_ticket_admin.view_dt_ticket_form_update_wizard"
+            )[0].id,
+            "res_id": res.id,
+            "target": "new",
+        }
 
     def action_refresh_ticket(self):
         self.search([]).unlink()
+        url = "http://0.0.0.0:8000/graphql"
+        payload = """
+        query ticketQuery($user: String!){
+            ticketQuery(query: {
+                domain: [["sync_user", "=", $user]],
+                order: {write_date: "desc"}
+            }){
+                id,
+                name,
+                state,
+                description,
+                startNum,
+                endNum,
+                winNum,
+                availableCount,
+                reservedCount,
+                soldCount,
+                createDate,
+                writeDate
+            }
+        }
+        """
         res = requests.post(
-            "http://0.0.0.0:8000/graphql",
-            data="{\"query\":\"query{\\r\\n    ticketQuery(query:{\\r\\n        domain: [[\\\"sync_user\\\", \\\"=\\\", \\\"%s\\\"]],\\r\\n        order: {}\\r\\n    }){\\r\\n        id,\\r\\n        name,\\r\\n        state,\\r\\n        description,\\r\\n        startNum,\\r\\n        endNum,\\r\\n        winNum,\\r\\n        availableCount,\\r\\n        reservedCount,\\r\\n        soldCount\\r\\n    }\\r\\n}\\r\\n\",\"variables\":{}}" % (
-                self.env.user.login,),
-            headers={"content-type": "application/json"},
+            url=url,
+            json={"query": payload, "variables": {"user": self.env.user.login}},
+            headers=DEFAULT_HEADER,
         )
         data = res.json()
-        tickets = data.get("data").get("ticketQuery")
-        for ticket in tickets:
-            self.create(
-                {
-                    "sync_id": ticket.get("id"),
-                    "name": ticket.get("name"),
-                    "state": ticket.get("state"),
-                    "description": ticket.get("description"),
-                    "start_num": ticket.get("startNum"),
-                    "end_num": ticket.get("endNum"),
-                    "win_num": ticket.get("winNum"),
-                    "available_count": ticket.get("availableCount"),
-                    "reserved_count": ticket.get("reservedCount"),
-                    "sold_count": ticket.get("soldCount")
-                }
-            )
+        self.create(
+            [
+                TicketData.construct_from_gql(tkt).model_dump()
+                for tkt in data.get("data").get("ticketQuery")
+            ]
+        )
         return self.env.ref("dream_ticket_admin.action_dt_ticket").read()[0]
 
     def action_refresh_ticket_lines(self):
         self.line_ids.unlink()
+        url = "http://0.0.0.0:8000/graphql"
+        payload = """
+        query ticket($id: ID!){
+            ticket(id: $id){
+                lines{
+                    id,
+                    number,
+                    userCode,
+                    state,
+                    isSpecialPrice,
+                    specialPrice,
+                    ticketId
+                }
+            }
+        }
+        """
         res = requests.post(
-            "http://0.0.0.0:8000/graphql",
-            data="{\"query\":\"query{\\r\\n    ticket(id: %s){\\r\\n        lines{\\r\\n            id,\\r\\n            number,\\r\\n            userCode,\\r\\n            state,\\r\\n            isSpecialPrice,\\r\\n            specialPrice\\r\\n        }\\r\\n    }\\r\\n}\",\"variables\":{}}" % (
-                self.sync_id,),
-            headers={"content-type": "application/json"},
+            url=url,
+            json={"query": payload, "variables": {"id": self.sync_id}},
+            headers=DEFAULT_HEADER,
         )
-        data = res.json()
-        tickets = data.get("data").get("ticket")
-        return self.env["dt.ticket.line"].create([{
-            "ticket_id": self.id,
-            "sync_id": line.get("id"),
-            "number": line.get("number"),
-            "state": line.get("state"),
-            "user_code": line.get("userCode"),
-            "is_special_price": line.get("isSpecialPrice"),
-            "special_price": line.get("specialPrice"),
-        } for line in tickets.get("lines")])
+        data_list = res.json()
+        tickets: List[TicketLineData] = []
+        for data in data_list["data"]["ticket"]["lines"]:
+            data["ticketId"] = self.id
+            tickets.append(TicketLineData.construct_from_gql(data=data))
+        return self.env["dt.ticket.line"].create([tkt.model_dump() for tkt in tickets])
 
     def action_go_to_lines(self):
         if not self.line_ids:
             self.action_refresh_ticket_lines()
         return {
             "name": "Ticket Lines",
-            'type': 'ir.actions.act_window',
+            "type": "ir.actions.act_window",
             "res_model": "dt.ticket.line",
             "view_mode": "tree,form",
-            "domain": [("ticket_id", "=", self.id)]
+            "domain": [("ticket_id", "=", self.id)],
         }
 
 
@@ -108,6 +153,8 @@ class TicketLine(models.Model):
 
     _description = "Ticket Lines"
 
+    _order = "number asc"
+
     number = fields.Integer()
     display_name = fields.Char(compute="_compute_display_name")
     ticket_id = fields.Many2one(comodel_name="dt.ticket", ondelete="cascade")
@@ -122,14 +169,24 @@ class TicketLine(models.Model):
             record.display_name = f"Number : {record.number}"
 
     def action_edit_ticket_line(self):
-        ...
-
-
-class TicketLineUpdate(models.TransientModel):
-    _inherit = "dt.ticket.line"
-    _name = "dt.ticket.line.wizard"
-
-    _description = "Ticket Lines Wizard"
-
-    def action_create(self):
-        ...
+        data = TicketLineData(
+            sync_id=self.sync_id,
+            ticket_id=self.ticket_id.id,
+            number=self.number,
+            state=self.state,
+            user_code=self.user_code or "",
+            is_special_price=self.is_special_price,
+            special_price=self.special_price
+        )
+        res = self.env["dt.ticket.line.wizard"].create(data.model_dump())
+        return {
+            "name": "Ticket Line Update",
+            "type": "ir.actions.act_window",
+            "res_model": "dt.ticket.line.wizard",
+            "view_mode": "form",
+            "view_id": self.env.ref(
+                "dream_ticket_admin.view_dt_ticket_line_form_update_wizard"
+            )[0].id,
+            "res_id": res.id,
+            "target": "new",
+        }

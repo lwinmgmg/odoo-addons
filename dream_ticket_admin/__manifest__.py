@@ -14,13 +14,16 @@
     "depends": [
         "base",
     ],
-    "dependencies": [],
+    "dependencies": [
+        "pydantic>=2.6"
+    ],
     "demo": [],
     "data": [
         "security/ir.model.access.csv",
         "security/ticket_user.xml",
         "views/ticket_view.xml",
         "wizards/ticket_wizard.xml",
+        "wizards/ticket_line_wizard.xml",
         "views/menus.xml"
     ],
     "application": True,

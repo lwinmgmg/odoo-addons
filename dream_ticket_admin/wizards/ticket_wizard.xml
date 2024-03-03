@@ -12,9 +12,9 @@
                         <field name="description" />
                     </group>
                     <group>
-                        <field name="available_count" required="1" />
                         <field name="start_num" required="1" />
                         <field name="end_num" required="1" />
+                        <field name="available_count" readonly="1" force_save="1"/>
                     </group>
                 </group>
                 <footer>
@@ -24,9 +24,35 @@
             </form>
         </field>
     </record>
+
+    <record id="view_dt_ticket_form_update_wizard" model="ir.ui.view">
+        <field name="name">dt.ticket.wizard.form.update</field>
+        <field name="model">dt.ticket.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="name" required="1" />
+                        <field name="state" required="1" />
+                        <field name="description" />
+                    </group>
+                    <group>
+                        <field name="win_num" required="1" />
+                        <field name="sync_id" required="1" />
+                    </group>
+                </group>
+                <footer>
+                    <button class="btn-primary" name="action_update" type="object" string="Confirm" />
+                    <button class="btn-secondary" special="cancel" string="Cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
     <record id="action_dt_ticket_create_wizard" model="ir.actions.act_window">
         <field name="name">Tickets Create</field>
         <field name="res_model">dt.ticket.wizard</field>
+        <field name="view_id" ref="view_dt_ticket_form_wizard"/>
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
