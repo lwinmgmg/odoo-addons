@@ -20,6 +20,7 @@
         "security/ir.model.access.csv",
         "security/ticket_user.xml",
         "views/ticket_view.xml",
+        "wizards/ticket_wizard.xml",
         "views/menus.xml"
     ],
     "application": True,

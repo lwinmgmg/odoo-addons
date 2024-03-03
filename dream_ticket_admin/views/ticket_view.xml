@@ -22,7 +22,8 @@
                         </group>
                         <notebook>
                             <page name="ticket_lines" string="Ticket Lines">
-                                <button class="btn-primary" name="action_update_ticket_line" type="object" string="Refresh Ticket Line"/>
+                                <button class="btn-primary" name="action_refresh_ticket_lines" type="object" string="Refresh Ticket Lines"/>
+                                <button class="btn-secondary mx-1" name="action_go_to_lines" type="object" string="Go To Ticket Lines"/>
                                 <field name="line_ids">
                                     <tree>
                                         <field name="number" />
@@ -45,13 +46,47 @@
         <field name="name">dt.ticket.tree</field>
         <field name="model">dt.ticket</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree create="0">
                 <field name="name" />
                 <field name="state" />
                 <field name="available_count" />
                 <field name="reserved_count" />
                 <field name="sold_count" />
             </tree>
+        </field>
+    </record>
+
+    <record id="view_dt_ticket_line_tree" model="ir.ui.view">
+        <field name="name">dt.ticket.line.tree</field>
+        <field name="model">dt.ticket.line</field>
+        <field name="arch" type="xml">
+            <tree create="0">
+                <field name="number" />
+                <field name="user_code" />
+                <field name="state" />
+                <field name="is_special_price" />
+                <field name="special_price" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_dt_ticket_line_form" model="ir.ui.view">
+        <field name="name">dt.ticket.line.form</field>
+        <field name="model">dt.ticket.line</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <group>
+                    <group>
+                        <field name="number" />
+                        <field name="user_code" />
+                        <field name="state" />
+                    </group>
+                    <group>
+                        <field name="is_special_price" />
+                        <field name="special_price" />
+                    </group>
+                </group>
+            </form>
         </field>
     </record>
 

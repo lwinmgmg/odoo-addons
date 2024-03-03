@@ -28,7 +28,8 @@ class Ticket(models.Model):
     available_count = fields.Integer()
     reserved_count = fields.Integer()
     sold_count = fields.Integer()
-    line_ids = fields.One2many(comodel_name="dt.ticket.line", inverse_name="ticket_id")
+    line_ids = fields.One2many(
+        comodel_name="dt.ticket.line", inverse_name="ticket_id")
     sync_id = fields.Integer(index=True)
 
     def action_update_ticket(self): ...
@@ -37,7 +38,8 @@ class Ticket(models.Model):
         self.search([]).unlink()
         res = requests.post(
             "http://0.0.0.0:8000/graphql",
-            data="{\"query\":\"query{\\r\\n    ticketQuery(query:{\\r\\n        domain: [[\\\"sync_user\\\", \\\"=\\\", \\\"%s\\\"]],\\r\\n        order: {}\\r\\n    }){\\r\\n        id,\\r\\n        name,\\r\\n        state,\\r\\n        description,\\r\\n        startNum,\\r\\n        endNum,\\r\\n        winNum,\\r\\n        availableCount,\\r\\n        reservedCount,\\r\\n        soldCount\\r\\n    }\\r\\n}\\r\\n\",\"variables\":{}}"%(self.env.user.login,),
+            data="{\"query\":\"query{\\r\\n    ticketQuery(query:{\\r\\n        domain: [[\\\"sync_user\\\", \\\"=\\\", \\\"%s\\\"]],\\r\\n        order: {}\\r\\n    }){\\r\\n        id,\\r\\n        name,\\r\\n        state,\\r\\n        description,\\r\\n        startNum,\\r\\n        endNum,\\r\\n        winNum,\\r\\n        availableCount,\\r\\n        reservedCount,\\r\\n        soldCount\\r\\n    }\\r\\n}\\r\\n\",\"variables\":{}}" % (
+                self.env.user.login,),
             headers={"content-type": "application/json"},
         )
         data = res.json()
@@ -59,11 +61,12 @@ class Ticket(models.Model):
             )
         return self.env.ref("dream_ticket_admin.action_dt_ticket").read()[0]
 
-    def action_update_ticket_line(self):
+    def action_refresh_ticket_lines(self):
         self.line_ids.unlink()
         res = requests.post(
             "http://0.0.0.0:8000/graphql",
-            data="{\"query\":\"query{\\r\\n    ticket(id: %s){\\r\\n        lines{\\r\\n            id,\\r\\n            number,\\r\\n            userCode,\\r\\n            state,\\r\\n            isSpecialPrice,\\r\\n            specialPrice\\r\\n        }\\r\\n    }\\r\\n}\",\"variables\":{}}"%(self.sync_id,),
+            data="{\"query\":\"query{\\r\\n    ticket(id: %s){\\r\\n        lines{\\r\\n            id,\\r\\n            number,\\r\\n            userCode,\\r\\n            state,\\r\\n            isSpecialPrice,\\r\\n            specialPrice\\r\\n        }\\r\\n    }\\r\\n}\",\"variables\":{}}" % (
+                self.sync_id,),
             headers={"content-type": "application/json"},
         )
         data = res.json()
@@ -78,12 +81,16 @@ class Ticket(models.Model):
             "special_price": line.get("specialPrice"),
         } for line in tickets.get("lines")])
 
-
-class TicketUpdate(models.TransientModel):
-    _inherit = "dt.ticket"
-    _name = "dt.ticket.wizard"
-
-    _description = "Ticket Wizard"
+    def action_go_to_lines(self):
+        if not self.line_ids:
+            self.action_refresh_ticket_lines()
+        return {
+            "name": "Ticket Lines",
+            'type': 'ir.actions.act_window',
+            "res_model": "dt.ticket.line",
+            "view_mode": "tree,form",
+            "domain": [("ticket_id", "=", self.id)]
+        }
 
 
 class TicketLineState(Enum):
@@ -102,12 +109,17 @@ class TicketLine(models.Model):
     _description = "Ticket Lines"
 
     number = fields.Integer()
+    display_name = fields.Char(compute="_compute_display_name")
     ticket_id = fields.Many2one(comodel_name="dt.ticket", ondelete="cascade")
     user_code = fields.Char()
     is_special_price = fields.Boolean()
     special_price = fields.Float()
     state = fields.Selection(TicketLineState.name_value())
     sync_id = fields.Integer(index=True)
+
+    def _compute_display_name(self):
+        for record in self:
+            record.display_name = f"Number : {record.number}"
 
     def action_edit_ticket_line(self):
         ...
@@ -118,3 +130,6 @@ class TicketLineUpdate(models.TransientModel):
     _name = "dt.ticket.line.wizard"
 
     _description = "Ticket Lines Wizard"
+
+    def action_create(self):
+        ...

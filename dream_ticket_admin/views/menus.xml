@@ -2,5 +2,9 @@
     <menuitem name="Tickets" id="ticket_main" sequence="100">
         <menuitem name="Tickets" id="ticket_sub_menu" action="action_dt_ticket_server">
         </menuitem>
+        <menuitem name="Configuration" id="ticket_configuration_sub_menu">
+            <menuitem name="Create Ticket" id="ticket_create_sub_menu" action="action_dt_ticket_create_wizard">
+            </menuitem>
+        </menuitem>
     </menuitem>
 </odoo>
