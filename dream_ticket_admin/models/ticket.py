@@ -37,7 +37,7 @@ class Ticket(models.Model):
         self.search([]).unlink()
         res = requests.post(
             "http://0.0.0.0:8000/graphql",
-            data="{\"query\":\"query{\\r\\n    ticketQuery(query:{\\r\\n        domain: [],\\r\\n        order: {}\\r\\n    }){\\r\\n        id,\\r\\n        name,\\r\\n        state,\\r\\n        description,\\r\\n        startNum,\\r\\n        endNum,\\r\\n        winNum,\\r\\n        availableCount,\\r\\n        reservedCount,\\r\\n        soldCount,\\r\\n        lines{\\r\\n            id,\\r\\n            number,\\r\\n            userCode,\\r\\n            state,\\r\\n            isSpecialPrice,\\r\\n            specialPrice\\r\\n        }\\r\\n    }\\r\\n}\\r\\n\",\"variables\":{}}",
+            data="{\"query\":\"query{\\r\\n    ticketQuery(query:{\\r\\n        domain: [[\\\"sync_user\\\", \\\"=\\\", \\\"%s\\\"]],\\r\\n        order: {}\\r\\n    }){\\r\\n        id,\\r\\n        name,\\r\\n        state,\\r\\n        description,\\r\\n        startNum,\\r\\n        endNum,\\r\\n        winNum,\\r\\n        availableCount,\\r\\n        reservedCount,\\r\\n        soldCount\\r\\n    }\\r\\n}\\r\\n\",\"variables\":{}}"%(self.env.user.login,),
             headers={"content-type": "application/json"},
         )
         data = res.json()
@@ -54,20 +54,29 @@ class Ticket(models.Model):
                     "win_num": ticket.get("winNum"),
                     "available_count": ticket.get("availableCount"),
                     "reserved_count": ticket.get("reservedCount"),
-                    "sold_count": ticket.get("soldCount"),
-                    "line_ids": [
-                        (0, 0,  {
-                            "sync_id": tmp.get("id"),
-                            "number": tmp.get("number"),
-                            "state": tmp.get("state"),
-                            "user_code": tmp.get("userCode"),
-                            "is_special_price": tmp.get("isSpecialPrice"),
-                            "special_price": tmp.get("specialPrice"),
-                        }) for tmp in ticket.get("lines")
-                    ]
+                    "sold_count": ticket.get("soldCount")
                 }
             )
         return self.env.ref("dream_ticket_admin.action_dt_ticket").read()[0]
+
+    def action_update_ticket_line(self):
+        self.line_ids.unlink()
+        res = requests.post(
+            "http://0.0.0.0:8000/graphql",
+            data="{\"query\":\"query{\\r\\n    ticket(id: %s){\\r\\n        lines{\\r\\n            id,\\r\\n            number,\\r\\n            userCode,\\r\\n            state,\\r\\n            isSpecialPrice,\\r\\n            specialPrice\\r\\n        }\\r\\n    }\\r\\n}\",\"variables\":{}}"%(self.sync_id,),
+            headers={"content-type": "application/json"},
+        )
+        data = res.json()
+        tickets = data.get("data").get("ticket")
+        return self.env["dt.ticket.line"].create([{
+            "ticket_id": self.id,
+            "sync_id": line.get("id"),
+            "number": line.get("number"),
+            "state": line.get("state"),
+            "user_code": line.get("userCode"),
+            "is_special_price": line.get("isSpecialPrice"),
+            "special_price": line.get("specialPrice"),
+        } for line in tickets.get("lines")])
 
 
 class TicketUpdate(models.TransientModel):
@@ -99,6 +108,9 @@ class TicketLine(models.Model):
     special_price = fields.Float()
     state = fields.Selection(TicketLineState.name_value())
     sync_id = fields.Integer(index=True)
+
+    def action_edit_ticket_line(self):
+        ...
 
 
 class TicketLineUpdate(models.TransientModel):

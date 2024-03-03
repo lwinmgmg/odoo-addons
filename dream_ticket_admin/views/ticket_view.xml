@@ -4,7 +4,7 @@
         <field name="name">dt.ticket.form</field>
         <field name="model">dt.ticket</field>
         <field name="arch" type="xml">
-            <form edit="0">
+            <form create="0" edit="0">
                 <header>
                     <button class="oe_stat_button" name="action_update_ticket" type="object" string="Update Ticket"/>
                 </header>
@@ -22,6 +22,7 @@
                         </group>
                         <notebook>
                             <page name="ticket_lines" string="Ticket Lines">
+                                <button class="btn-primary" name="action_update_ticket_line" type="object" string="Refresh Ticket Line"/>
                                 <field name="line_ids">
                                     <tree>
                                         <field name="number" />
@@ -29,6 +30,7 @@
                                         <field name="state" />
                                         <field name="is_special_price" />
                                         <field name="special_price" />
+                                        <button class="btn-primary" name="action_edit_ticket_line" type="object" string="Edit"/>
                                     </tree>
                                 </field>
                             </page>
