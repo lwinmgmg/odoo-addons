@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, ConfigDict
 class TicketData(BaseModel):
     sync_id: Optional[int] = Field(serialization_alias="id", default=0)
     name: str
-    description: str
+    description: Optional[str] = ""
     state: str
     start_num: int
     end_num: int
