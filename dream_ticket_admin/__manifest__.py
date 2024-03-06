@@ -13,6 +13,7 @@
     "support": "cosmossolutionservice@gmail.com",
     "depends": [
         "base",
+        "api_user"
     ],
     "dependencies": [
         "pydantic>=2.6"

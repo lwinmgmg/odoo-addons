@@ -7,6 +7,9 @@ from ..datamodels.ticket import TicketData, TicketLineData
 
 DEFAULT_HEADER = {"content-type": "application/json"}
 
+def get_dt_header(model: models.Model) -> dict:
+    return DEFAULT_HEADER
+
 
 class TicketState(Enum):
     DRAFT = "draft"
