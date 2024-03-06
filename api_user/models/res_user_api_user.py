@@ -23,6 +23,7 @@ class ResUserApiUser(models.Model):
     token_type: str = fields.Char(index=True)
     duration: int = fields.Integer()
     reusable: bool = fields.Boolean()
+    max_count: int = fields.Integer(default=1)
     active: bool = fields.Boolean(default=True, index=True)
 
     _sql_constraints = [
@@ -35,11 +36,12 @@ class ResUserApiUser(models.Model):
 
     def encode(self, login: Optional[str] = "") -> str:
         now_time = datetime.utcnow()
-        nfb_time = now_time + timedelta(seconds=5)
+        exp_time = now_time + timedelta(seconds=self.duration)
         jwt_id = uuid4().hex
+        self.env["res.users.key.expire"].add_key(key=jwt_id, expire_time=exp_time, count=self.max_count)
         return jwt.encode(
             RegisteredClaim(
-                exp=int(nfb_time.timestamp()),
+                exp=int(exp_time.timestamp()),
                 nbf=int(now_time.timestamp()),
                 iss=self.issuer,
                 aud=self.audience,

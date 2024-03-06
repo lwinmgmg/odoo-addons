@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 api_user.access_res_users_api_user,access_res_users_api_user,api_user.model_res_users_api_user,base.group_user,1,0,0,0
+api_user.access_res_users_key_expire,access_res_users_key_expire,api_user.model_res_users_key_expire,base.group_user,1,0,0,0
