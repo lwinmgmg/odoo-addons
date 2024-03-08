@@ -3,7 +3,7 @@ from odoo import models
 from odoo.exceptions import ValidationError
 
 from ..datamodels.ticket import TicketData
-from ..models.ticket import DEFAULT_HEADER
+from ..models.ticket import get_dt_header
 
 class TicketUpdate(models.TransientModel):
     _inherit = "dt.ticket"
@@ -28,7 +28,7 @@ class TicketUpdate(models.TransientModel):
             "variables": {
                 "data": data
             }
-        }, headers=DEFAULT_HEADER)
+        }, headers=get_dt_header(self))
         if res.status_code != 200 or res.json().get("errors"):
             raise ValidationError(f"Unable to create ticket : {res.json()}")
         return self.env["dt.ticket"].action_refresh_ticket()
@@ -48,7 +48,7 @@ class TicketUpdate(models.TransientModel):
             "variables": {
                 "data": [data.model_dump(by_alias=True)]
             }
-        }, headers=DEFAULT_HEADER)
+        }, headers=get_dt_header(self))
         if res.status_code != 200 or res.json().get("errors"):
             raise ValidationError("Failed to update data")
         return self.env["dt.ticket"].search([("sync_id", "=", data.sync_id)]).write(data.model_dump())

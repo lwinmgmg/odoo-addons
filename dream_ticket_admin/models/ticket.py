@@ -5,10 +5,14 @@ from odoo import fields, models, api
 
 from ..datamodels.ticket import TicketData, TicketLineData
 
-DEFAULT_HEADER = {"content-type": "application/json"}
+ODOO_TOKEN_TYPE = "Odoo"
 
 def get_dt_header(model: models.Model) -> dict:
-    return DEFAULT_HEADER
+    token = model.env["res.users.api.user"].search([("audience", "=", "dt")])[0].encode()
+    return {
+            "content-type": "application/json",
+            "Authorization": f"{ODOO_TOKEN_TYPE} {token}"
+        }
 
 
 class TicketState(Enum):
@@ -88,7 +92,7 @@ class Ticket(models.Model):
         res = requests.post(
             url=url,
             json={"query": payload, "variables": {"user": self.env.user.login}},
-            headers=DEFAULT_HEADER,
+            headers=get_dt_header(self),
         )
         data = res.json()
         self.create(
@@ -120,7 +124,7 @@ class Ticket(models.Model):
         res = requests.post(
             url=url,
             json={"query": payload, "variables": {"id": self.sync_id}},
-            headers=DEFAULT_HEADER,
+            headers=get_dt_header(self),
         )
         data_list = res.json()
         tickets: List[TicketLineData] = []

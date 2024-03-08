@@ -57,7 +57,7 @@ class KeyExpire(models.Model):
             self._check_key(record=record)
         else:
             record = self.search([("key", "=", key)])
-            self._check_key(record=record)
+            self._check_key(record=record, max_count=max_count)
             record.count += 1
         return True
 

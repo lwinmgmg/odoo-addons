@@ -1,3 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- issuer: str = fields.Char()
+    audience: str = fields.Char()
+    secret: str = fields.Char()
+    algorithm: str = fields.Char()
+    token_type: str = fields.Char(index=True)
+    duration: int = fields.Integer()
+    reusable: bool = fields.Boolean()
+    max_count: int = fields.Integer(default=1)
+    active: bool = fields.Boolean(default=True, index=True) -->
+    <record id="view_api_user_tree" model="ir.ui.view">
+        <field name="name">res.users.api.user.tree</field>
+        <field name="model">res.users.api.user</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="issuer" />
+                <field name="audience" />
+                <field name="secret" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_api_user_form" model="ir.ui.view">
+        <field name="name">res.users.api.user.form</field>
+        <field name="model">res.users.api.user</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="issuer" />
+                        <field name="audience" />
+                        <field name="secret" />
+                        <field name="algorithm" />
+                    </group>
+                    <group>
+                        <field name="token_type" />
+                        <field name="duration" />
+                        <field name="reusable" />
+                        <field name="max_count" />
+                    </group>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_api_user" model="ir.actions.act_window">
+        <field name="name">Api User</field>
+        <field name="res_model">res.users.api.user</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            Add a new api user
+            </p><p>
+            Create a new api user
+            </p>
+        </field>
+    </record>
 </odoo>

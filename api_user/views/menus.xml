@@ -1,0 +1,5 @@
+
+<odoo>
+    <menuitem parent="base.menu_users" name="Api User" sequence="100" id="api_user_base_menu" action="action_api_user">
+    </menuitem>
+</odoo>

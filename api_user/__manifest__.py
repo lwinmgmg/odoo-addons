@@ -19,7 +19,9 @@
     ],
     "demo": [],
     "data": [
-        "security/ir.model.access.csv"
+        "security/ir.model.access.csv",
+        "views/res_user_api_user_view.xml",
+        "views/menus.xml"
     ],
     "application": True,
     "installable": True,

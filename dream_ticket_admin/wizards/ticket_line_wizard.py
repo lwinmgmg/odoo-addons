@@ -3,7 +3,7 @@ from odoo import models
 from odoo.exceptions import ValidationError
 
 from ..datamodels.ticket import TicketLineData
-from ..models.ticket import DEFAULT_HEADER
+from ..models.ticket import get_dt_header
 
 class TicketLineUpdate(models.TransientModel):
     _inherit = "dt.ticket.line"
@@ -34,7 +34,7 @@ class TicketLineUpdate(models.TransientModel):
             "variables": {
                 "data": [data.model_dump(by_alias=True)]
             }
-        }, headers=DEFAULT_HEADER)
+        }, headers=get_dt_header(self))
         if res.status_code != 200 or res.json().get("errors"):
             raise ValidationError("Failed to update data")
         data.ticket_id = self.ticket_id.id

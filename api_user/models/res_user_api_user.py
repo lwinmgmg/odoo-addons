@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import uuid4
 from datetime import datetime, timedelta
 import jwt
-from odoo import fields, models
+from odoo import fields, models, api, registry
 
 from ..datamodels.jwt_data import JwtData
 from ..datamodels.registered_claim import RegisteredClaim
@@ -35,23 +35,27 @@ class ResUserApiUser(models.Model):
     ]
 
     def encode(self, login: Optional[str] = "") -> str:
-        now_time = datetime.utcnow()
-        exp_time = now_time + timedelta(seconds=self.duration)
-        jwt_id = uuid4().hex
-        self.env["res.users.key.expire"].add_key(key=jwt_id, expire_time=exp_time, count=self.max_count)
-        return jwt.encode(
-            RegisteredClaim(
-                exp=int(exp_time.timestamp()),
-                nbf=int(now_time.timestamp()),
-                iss=self.issuer,
-                aud=self.audience,
-                iat=int(now_time.timestamp()),
-                jti=jwt_id,
-                sub=JwtData(login=login if login else self.env.user.login),
-            ).model_dump(by_alias=True),
-            self.secret,
-            algorithm=self.algorithm,
-        )
+        with registry(self.env.cr.dbname).cursor() as new_cr:
+            # Create a new environment with new cursor database
+            new_env = api.Environment(new_cr, self.env.uid, self.env.context)
+            now_time = datetime.utcnow()
+            exp_time = now_time + timedelta(seconds=self.duration)
+            jwt_id = uuid4().hex
+            new_env["res.users.key.expire"].add_key(key=jwt_id, expire_time=exp_time.timestamp(), count=0)
+            new_cr.commit()
+            return jwt.encode(
+                RegisteredClaim(
+                    exp=int(exp_time.timestamp()),
+                    nbf=int(now_time.timestamp()),
+                    iss=self.issuer,
+                    aud=self.audience,
+                    iat=int(now_time.timestamp()),
+                    jti=jwt_id,
+                    sub=JwtData(login=login if login else self.env.user.login),
+                ).model_dump(by_alias=True),
+                self.secret,
+                algorithm=self.algorithm,
+            )
 
     def decode(self, token: str, verify: bool = True) -> RegisteredClaim:
         data = jwt.decode(
