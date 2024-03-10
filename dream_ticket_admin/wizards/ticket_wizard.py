@@ -1,3 +1,4 @@
+import json
 import requests
 from odoo import models
 from odoo.exceptions import ValidationError
@@ -23,6 +24,8 @@ class TicketUpdate(models.TransientModel):
         data = TicketData.model_validate(self, from_attributes=True).model_dump()
         data.pop("sync_id")
         data["sync_user"] = self.env.user.login
+        data["start_date"] = data["start_date"].isoformat() if data["start_date"] else None
+        data["end_date"] = data["end_date"].isoformat() if data["end_date"] else None
         res = requests.post(url=url, json={
             "query": payload,
             "variables": {

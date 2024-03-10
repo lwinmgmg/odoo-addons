@@ -1,14 +1,18 @@
-from typing import Dict, Any, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Dict, Any, Optional, Annotated
+from datetime import datetime
+from pydantic import BaseModel, Field, BeforeValidator
 
 
 class TicketData(BaseModel):
     sync_id: Optional[int] = Field(serialization_alias="id", default=0)
     name: str
     description: Optional[str] = ""
+    price: Optional[float] = 0
     state: str
     start_num: int
     end_num: int
+    start_date: datetime
+    end_date: datetime
     win_num: Optional[int] = -1
     available_count: int
     reserved_count: int
@@ -23,7 +27,10 @@ class TicketData(BaseModel):
             state=data.get("state"),
             start_num=data.get("startNum"),
             end_num=data.get("endNum"),
+            start_date=data.get("startDate"),
+            end_date=data.get("endDate"),
             win_num=data.get("winNum"),
+            price=data.get("price"),
             available_count=data.get("availableCount"),
             reserved_count=data.get("reservedCount"),
             sold_count=data.get("soldCount"),

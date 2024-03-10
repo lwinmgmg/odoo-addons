@@ -14,11 +14,14 @@
                             <field name="name" />
                             <field name="state" />
                             <field name="description" />
+                            <field name="price" />
                         </group>
                         <group>
                             <field name="available_count" />
                             <field name="reserved_count" />
                             <field name="sold_count" />
+                            <field name="start_date" />
+                            <field name="end_date" />
                         </group>
                         <notebook>
                             <page name="ticket_lines" string="Ticket Lines">

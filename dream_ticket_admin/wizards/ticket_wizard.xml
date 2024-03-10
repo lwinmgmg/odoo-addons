@@ -10,11 +10,14 @@
                         <field name="name" required="1" />
                         <field name="state" required="1" />
                         <field name="description" />
+                        <field name="price" />
                     </group>
                     <group>
                         <field name="start_num" required="1" />
                         <field name="end_num" required="1" />
                         <field name="available_count" readonly="1" force_save="1"/>
+                        <field name="start_date" />
+                        <field name="end_date" />
                     </group>
                 </group>
                 <footer>

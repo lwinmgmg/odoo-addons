@@ -33,9 +33,12 @@ class Ticket(models.Model):
     name = fields.Char()
     state = fields.Selection(TicketState.name_value())
     description = fields.Text()
+    price = fields.Float()
     start_num = fields.Integer()
     end_num = fields.Integer()
     win_num = fields.Integer()
+    start_date = fields.Datetime()
+    end_date = fields.Datetime()
     available_count = fields.Integer()
     reserved_count = fields.Integer()
     sold_count = fields.Integer()
@@ -79,7 +82,10 @@ class Ticket(models.Model):
                 state,
                 description,
                 startNum,
+                price,
                 endNum,
+                startDate,
+                endDate,
                 winNum,
                 availableCount,
                 reservedCount,
