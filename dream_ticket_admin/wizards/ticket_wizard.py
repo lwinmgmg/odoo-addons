@@ -1,8 +1,8 @@
-import json
 import requests
 from odoo import models
 from odoo.exceptions import ValidationError
 
+from ..utility.dt_formatter import convert_dt_str
 from ..datamodels.ticket import TicketData
 from ..models.ticket import get_dt_header
 
@@ -24,8 +24,7 @@ class TicketUpdate(models.TransientModel):
         data = TicketData.model_validate(self, from_attributes=True).model_dump()
         data.pop("sync_id")
         data["sync_user"] = self.env.user.login
-        data["start_date"] = data["start_date"].isoformat() if data["start_date"] else None
-        data["end_date"] = data["end_date"].isoformat() if data["end_date"] else None
+        convert_dt_str(data=data)
         res = requests.post(url=url, json={
             "query": payload,
             "variables": {
@@ -46,10 +45,12 @@ class TicketUpdate(models.TransientModel):
                 }
             }
         """
+        data_dict = data.model_dump(by_alias=True)
+        convert_dt_str(data=data_dict)
         res = requests.post(url=url, json={
             "query": payload,
             "variables": {
-                "data": [data.model_dump(by_alias=True)]
+                "data": [data_dict]
             }
         }, headers=get_dt_header(self))
         if res.status_code != 200 or res.json().get("errors"):

@@ -3,6 +3,7 @@ from enum import Enum
 import requests
 from odoo import fields, models, api
 
+from ..utility.dt_formatter import remove_dt_tz
 from ..datamodels.ticket import TicketData, TicketLineData
 
 ODOO_TOKEN_TYPE = "Odoo"
@@ -103,7 +104,7 @@ class Ticket(models.Model):
         data = res.json()
         self.create(
             [
-                TicketData.construct_from_gql(tkt).model_dump()
+                remove_dt_tz(TicketData.construct_from_gql(tkt).model_dump())
                 for tkt in data.get("data").get("ticketQuery")
             ]
         )

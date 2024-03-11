@@ -41,7 +41,9 @@
                     </group>
                     <group>
                         <field name="win_num" required="1" />
-                        <field name="sync_id" required="1" />
+                        <field name="sync_id" required="1" readonly="1" />
+                        <field name="start_date" />
+                        <field name="end_date" />
                     </group>
                 </group>
                 <footer>
